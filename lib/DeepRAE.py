@@ -262,8 +262,8 @@ class DRAE3():
     Des:
         X = L + S
         L is a non-linearly low rank matrix and S is a sparse matrix.
-        argmin |L - g(h(L))|_2 + |S|_1
-        lagrangian multiplier to train model
+        argmin ||L - Decoder(Encoder(L))|| + ||S||_1
+        Use Alternating projection to train model
     """
     def __init__(self, hidden_layers_sizes, seeds,lambda_=1.0, error = 1.0e-5, corruption_level=0.0, penOfOverfitting = 0.1):
         self.lambda_ = lambda_

@@ -11,16 +11,16 @@ class Deep_Autoencoder():
         ## Encoder initialize
         for i in range(len(input_dim_list)-1):
             
-            self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-1.0,1.0)))
+            self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-0.1,0.1)))
             
-            self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-1.0,1.0)))
+            self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-0.1,0.1)))
             
         for i in range(len(input_dim_list)-2,-1,-1):
             
-            self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-1.0,1.0)))
+            self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
         sess.run(tf.initialize_all_variables())
         
-    def fit(self, X, sess, target = None, learning_rate=0.15, 
+    def fit(self, X, sess, learning_rate=0.15, 
             iteration=200, batch_size=50, verbose=False):
         assert X.shape[1] == self.dim_list[0]
         if target is not None:
@@ -28,10 +28,6 @@ class Deep_Autoencoder():
         
         input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         
-        if target is None:
-            target_x = input_x
-        else:
-            target_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         ## coding phase :
         last_layer = input_x
         for weight,bias in zip(self.W_list,self.encoding_b_list):
@@ -43,13 +39,11 @@ class Deep_Autoencoder():
             last_layer = hidden
         recon = last_layer
         
-#        cost = tf.reduce_mean(tf.square(target_x - recon))
-        cost = 200 * tf.contrib.losses.log_loss(recon, target_x)
+        #cost = tf.reduce_mean(tf.square(target_x - recon))
+        cost = 200 *tf.contrib.losses.log_loss(recon, target_x)
 #         cost = tf.reduce_mean(- tf.reduce_sum(tf.mul(target_x , tf.log(recon)) +
 #                                 tf.mul((1 - target_x) , tf.log(1 - recon)), 
 #                                               reduction_indices = 1))
-#         cost =  T.mean( - T.sum(target * T.log(output) + 
-#                                 (1-target) * T.log(1 - output), axis=1))
         opt = tf.train.GradientDescentOptimizer(learning_rate) 
                         
         train_step = opt.minimize(cost)
@@ -57,32 +51,18 @@ class Deep_Autoencoder():
         error = []
         sample_size = X.shape[0]
         turns = sample_size / batch_size
-        if target is not None:
-            for i in xrange(iteration):
-                for turn in xrange(turns):
+        
+        for i in xrange(iteration):
+            for turn in xrange(turns):
 
-                    start = (batch_size*turn) % sample_size
-                    end = (batch_size*(turn+1)) % sample_size
+                start = (batch_size*turn) % sample_size
+                end = (batch_size*(turn+1)) % sample_size
 
-                    sess.run(train_step,feed_dict = 
-                             {input_x:X[start:end],target_x:target[start:end]})
-                e = cost.eval(session = sess,feed_dict = 
-                              {input_x: X[start:end],target_x:target[start:end]})
-                if verbose and i%20==0:
-                    print "iteration : ", i ,", cost : ", e
-                error.append(e)
-        else:
-            for i in xrange(iteration):
-                for turn in xrange(turns):
-
-                    start = (batch_size*turn) % sample_size
-                    end = (batch_size*(turn+1)) % sample_size
-
-                    sess.run(train_step,feed_dict = {input_x:X[start:end]})
-                e = cost.eval(session = sess,feed_dict = {input_x: X[start:end]})
-                if verbose and i%20==0:
-                    print "    iteration : ", i ,", cost : ", e
-                error.append(e)
+                sess.run(train_step,feed_dict = {input_x:X[start:end]})
+            e = cost.eval(session = sess,feed_dict = {input_x: X[start:end]})
+            if verbose and i%20==0:
+                print "    iteration : ", i ,", cost : ", e
+            error.append(e)
         
         return error
     def transform(self, X, sess):

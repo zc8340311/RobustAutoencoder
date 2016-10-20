@@ -8,13 +8,13 @@ class Deep_Autoencoder():
         self.encoding_b_list = []
         self.decoding_b_list = []
         self.dim_list = input_dim_list
-        ## Encoder initialize
+        ## Encoders parameters
         for i in range(len(input_dim_list)-1):
             
             self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-0.1,0.1)))
             
             self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-0.1,0.1)))
-            
+        ## Decoders parameters 
         for i in range(len(input_dim_list)-2,-1,-1):
             
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
@@ -23,27 +23,23 @@ class Deep_Autoencoder():
     def fit(self, X, sess, learning_rate=0.15, 
             iteration=200, batch_size=50, verbose=False):
         assert X.shape[1] == self.dim_list[0]
-        if target is not None:
-            assert X.shape == target.shape
         
         input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         
-        ## coding phase :
+        ## coding graph :
         last_layer = input_x
         for weight,bias in zip(self.W_list,self.encoding_b_list):
             hidden = tf.sigmoid(tf.matmul(last_layer,weight) + bias)
             last_layer = hidden
-        ## decode phase
+        ## decode graph:
         for weight,bias in zip(reversed(self.W_list),self.decoding_b_list):
             hidden = tf.sigmoid(tf.matmul(last_layer,tf.transpose(weight)) + bias)
             last_layer = hidden
         recon = last_layer
         
-        #cost = tf.reduce_mean(tf.square(target_x - recon))
-        cost = 200 *tf.contrib.losses.log_loss(recon, target_x)
-#         cost = tf.reduce_mean(- tf.reduce_sum(tf.mul(target_x , tf.log(recon)) +
-#                                 tf.mul((1 - target_x) , tf.log(1 - recon)), 
-#                                               reduction_indices = 1))
+        #cost = tf.reduce_mean(tf.square(input_x - recon))
+        cost = 200 *tf.contrib.losses.log_loss(recon, input_x)
+
         opt = tf.train.GradientDescentOptimizer(learning_rate) 
                         
         train_step = opt.minimize(cost)

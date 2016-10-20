@@ -2,6 +2,30 @@ import numpy as np
 import math
 import numpy.linalg as nplin
 import tensorflow as tf
+import DAE_tensorflow as DAE
+def shrink(epsilon, x):
+    """
+    @Original Author: Prof. Randy
+    @Modified by: Chong Zhou
+
+    Args:
+        epsilon: the shrinkage parameter (either a scalar or a vector)
+        x: the vector to shrink on
+
+    Returns:
+        The shrunk vector
+    """
+    output = np.array(x*0.)
+    
+    for i in xrange(len(x)):
+        if x[i] > epsilon:
+            output[i] = x[i] - epsilon
+        elif x[i] < -epsilon:
+            output[i] = x[i] + epsilon
+        else:
+            output[i] = 0
+    return output
+
 class RDAE():
     """
     @author: Chong Zhou
@@ -21,10 +45,10 @@ class RDAE():
         self.layers_sizes = layers_sizes
         self.error = error
         self.penOfOverfitting = penOfOverfitting
-        self.seeds = seeds#list of seed number for each layer
+        self.seeds = seeds #list of seed number for each layer
         self.errors=[]
         
-        self.AE = Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
+        self.AE = DAE.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
         
     def fit(self, X, sess, target = None, learning_rate=0.15, inner_iteration = 50,
             iteration=20, batch_size=50, verbose=False):
@@ -38,9 +62,9 @@ class RDAE():
         penOfOverfitting = self.penOfOverfitting
         
         mu = (X.size) / (4.0 * nplin.norm(X,1))
-        
+        print self.lambda_ / mu
         LS0 = self.L + self.S
-        ##E = (np.ones(X.shape) * self.lambda_/mu).reshape(X.size)
+        
         XFnorm = nplin.norm(X,'fro')
         if verbose:
             print "X shape: ", X.shape
@@ -79,32 +103,27 @@ class RDAE():
                 break
             
             LS0 = self.L + self.S
-        self.S = shrink(self.lambda_/mu,self.S.reshape(X.size)).reshape(X.shape)
+        #self.S = shrink(self.lambda_/mu,self.S.reshape(X.size)).reshape(X.shape)
         return self.L , self.S
     def transform(self, X, sess):
         L = X - self.S
         return self.AE.transform(X = L, sess = sess)
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
-def shrink(epsilon, x):
-    """
-    @Original Author: Prof. Randy
-    @Modified by: Chong Zhou
+if __name__ == "__main__":
+	x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+	sess = tf.Session()
+	rae = RDAE(sess = sess, seeds = 1.0, lambda_= 80, layers_sizes=[784,400])
 
-    Args:
-        epsilon: the shrinkage parameter (either a scalar or a vector)
-        x: the vector to shrink on
+	L, S = rae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 40, inner_iteration = 50,
+		    iteration=5, verbose=True)
 
-    Returns:
-        The shrunk vector
-    """
-    output = np.array(x*0.)
-    
-    for i in range(len(x)):
-        if x[i] > epsilon:
-            output[i] = x[i] - epsilon
-        elif x[i] < -epsilon:
-            output[i] = x[i] + epsilon
-        else:
-            output[i] = 0
-    return output
+	recon_rae = rae.getRecon(x, sess = sess)
+
+	sess.close()
+	print rae.errors
+	from collections import Counter
+	print Counter(S.reshape(S.size))[0]
+	print 
+	      
+

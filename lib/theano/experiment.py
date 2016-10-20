@@ -68,7 +68,7 @@ def corrupt(X,corNum=10):
                 X[i,j] = 1
     return X
 if __name__ =="__main__":
-    # X = np.load(r"/home/czhou2/Documents/packets_1000.npk")
+	# X = np.load(r"/home/czhou2/Documents/packets_1000.npk")
     # X = X[:,:1512]/float(np.max(X))
     # inputsize=(36,42)
     # data_loc = r"/home/czhou2/Documents/00001/packets.npy"

@@ -1,3 +1,5 @@
+import tensorflow as tf
+import numpy as np
 class Deep_Autoencoder():
     def __init__(self, sess, input_dim_list=[784,400]):
         """input_dim_list must include the original data dimension"""
@@ -9,13 +11,13 @@ class Deep_Autoencoder():
         ## Encoder initialize
         for i in range(len(input_dim_list)-1):
             
-            self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-0.1,0.1)))
+            self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-1.0,1.0)))
             
-            self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-0.1,0.1)))
+            self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-1.0,1.0)))
             
         for i in range(len(input_dim_list)-2,-1,-1):
             
-            self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
+            self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-1.0,1.0)))
         sess.run(tf.initialize_all_variables())
         
     def fit(self, X, sess, target = None, learning_rate=0.15, 
@@ -41,11 +43,11 @@ class Deep_Autoencoder():
             last_layer = hidden
         recon = last_layer
         
-        #cost = tf.reduce_sum(tf.square(target_x - recon))
-        #cost = tf.contrib.losses.log_loss(recon, target_x)
-        cost = tf.reduce_mean(- tf.reduce_sum(target_x * tf.log(recon) +
-                                (1 - target_x) * tf.log(1 - recon), 
-                                              reduction_indices = 1))
+#        cost = tf.reduce_mean(tf.square(target_x - recon))
+        cost = 200 * tf.contrib.losses.log_loss(recon, target_x)
+#         cost = tf.reduce_mean(- tf.reduce_sum(tf.mul(target_x , tf.log(recon)) +
+#                                 tf.mul((1 - target_x) , tf.log(1 - recon)), 
+#                                               reduction_indices = 1))
 #         cost =  T.mean( - T.sum(target * T.log(output) + 
 #                                 (1-target) * T.log(1 - output), axis=1))
         opt = tf.train.GradientDescentOptimizer(learning_rate) 
@@ -79,7 +81,7 @@ class Deep_Autoencoder():
                     sess.run(train_step,feed_dict = {input_x:X[start:end]})
                 e = cost.eval(session = sess,feed_dict = {input_x: X[start:end]})
                 if verbose and i%20==0:
-                    print "iteration : ", i ,", cost : ", e
+                    print "    iteration : ", i ,", cost : ", e
                 error.append(e)
         
         return error
@@ -89,9 +91,9 @@ class Deep_Autoencoder():
         for weight,bias in zip(self.W_list,self.encoding_b_list):
             hidden = tf.sigmoid(tf.matmul(last_layer,weight) + bias)
             last_layer = hidden
-        return hidden.eval(session = sess,feed_dict={new_input:X})
+        return hidden.eval(session = sess, feed_dict={new_input: X})
     
-    def get_recon(self, X, sess):
+    def getRecon(self, X, sess):
         hidden_data = self.transform(X, sess)
         hidden_layer = tf.placeholder(tf.float32,[None,self.dim_list[-1]])
         last_layer = hidden_layer
@@ -100,3 +102,18 @@ class Deep_Autoencoder():
             last_layer = hidden
         recon = last_layer
         return recon.eval(session = sess,feed_dict={hidden_layer:hidden_data})
+if __name__ == "__main__":
+    x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+    
+    sess = tf.Session()
+    ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,225,100])
+
+    error = ae.fit(x ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 100, verbose=True)
+
+    recon1 = ae.getRecon(x, sess)
+
+    sess.close()   
+    print error
+
+
+

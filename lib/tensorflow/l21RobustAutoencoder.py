@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
+# def l21(x):
+#     return tf.reduce_sum(tf.sqrt(tf.reduce_sum(x ** 2 , reduction_indices = 1)))
 class RobustL21Autoencoder():
     """
     @author: Chong Zhou
@@ -16,6 +18,9 @@ class RobustL21Autoencoder():
         The idea of shrink the l21 norm comes from the wiki 'Regularization' link: {
             https://en.wikipedia.org/wiki/Regularization_(mathematics)
         }
+    Improve:
+        1. fix the 0-cost bugs
+        
     """
     def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-5):
         self.lambda_ = lambda_
@@ -47,27 +52,24 @@ class RobustL21Autoencoder():
                     output[j,i] = x[j,i] - epsilon * x[j,i] / norm[i]
             elif norm[i] < -epsilon:
                 for j in xrange(x.shape[0]):
-                    output[j,i] = x[j,i] - epsilon * x[j,i] / norm[i]
+                    output[j,i] = x[j,i] + epsilon * x[j,i] / norm[i]
             else:
                 output[:,i] = 0.
         return output
 
     
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
-            iteration=20, batch_size=50, verbose=False):
+            iteration=20, batch_size=40, verbose=False):
         ## The first layer must be the input layer, so they should have same sizes.
-        assert X.shape[1] == self.layers_sizes[0]
-        
+        assert X.shape[1] == self.layers_sizes[0]       
         ## initialize L, S, mu(shrinkage operator)
         self.L = np.zeros(X.shape)
         self.S = np.zeros(X.shape)
-        
-        ## this mu is confused to me.
-        mu = (X.size) / (4.0 * nplin.norm(X,1))
-        
+        ## one_over_mu
+        one_over_mu = np.linalg.norm(np.linalg.norm(x,2,axis=0),1) / x.shape[1]
         LS0 = self.L + self.S
         ## To estimate the size of input X
-        XFnorm = nplin.norm(X,'fro')
+        XFnorm = np.linalg.norm(X,'fro')
         if verbose:
             print "X shape: ", X.shape
             print "L shape: ", self.L.shape
@@ -81,24 +83,22 @@ class RobustL21Autoencoder():
             ## alternating project, first project to L
             self.L = X - self.S
             ## Using L to train the auto-encoder
-            print "size of L", np.sum(map(np.abs,self.L))
-            
-            self.errors.extend(self.AE.fit(X = self.L, sess = sess, 
+            self.errors.extend(self.AE.fit(self.L, sess = sess, 
                                            iteration = inner_iteration,
                                            learning_rate = learning_rate, 
                                            batch_size = batch_size,
                                            verbose = verbose))
-            print "mean of error: ", np.mean(self.errors)
+            
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)
-            print "size of recon L: ", np.sum(map(np.abs,self.L))
+                      
             ## alternating project, now project to S and shrink S
-            self.S = self.l21shrink(self.lambda_/mu, (X - self.L))
-            print "size of S: ", np.sum(map(np.abs,self.S))
+            self.S = self.l21shrink(self.lambda_ * one_over_mu, (X - self.L))
+            
             ## Converge Condition: the L and S are close enough to X
-            c1 = nplin.norm(X - self.L - self.S, 'fro') / XFnorm
+            c1 = np.linalg.norm(X - self.L - self.S, 'fro') / XFnorm
             ## Converge Condition: There is no change for L and S
-            c2 = np.min([mu,np.sqrt(mu)]) * nplin.norm(LS0 - self.L - self.S) / XFnorm
+            c2 = np.min([mu,np.sqrt(mu)]) * np.linalg.norm(LS0 - self.L - self.S) / XFnorm
             
             if verbose:
                 print "c1: ", c1

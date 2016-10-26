@@ -1,13 +1,13 @@
 import numpy as np
 import tensorflow as tf
-
+import DAE_tensorflow as dae
 class RobustL21Autoencoder():
     """
     @author: Chong Zhou
     first version.
     complete: 10/20/2016
-    
-    
+
+
     Des:
         X = L + S
         L is a non-linearly low dimension matrix and S is a sparse matrix.
@@ -22,16 +22,16 @@ class RobustL21Autoencoder():
         self.layers_sizes = layers_sizes
         self.error = error
         self.errors=[]
-        
-        self.AE = Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
-    
-    
+
+        self.AE = dae.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
+
+
     def l21shrink(self, epsilon, x):
         """
         auther : Chong Zhou
         date : 10/20/2016
         Args:
-            epsilon: the shrinkage parameter 
+            epsilon: the shrinkage parameter
             x: matrix to shrink on
         Ref:
             wiki Regularization: {https://en.wikipedia.org/wiki/Regularization_(mathematics)}
@@ -52,19 +52,19 @@ class RobustL21Autoencoder():
                 output[:,i] = 0.
         return output
 
-    
+
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
             iteration=20, batch_size=50, verbose=False):
         ## The first layer must be the input layer, so they should have same sizes.
         assert X.shape[1] == self.layers_sizes[0]
-        
+
         ## initialize L, S, mu(shrinkage operator)
         self.L = np.zeros(X.shape)
         self.S = np.zeros(X.shape)
-        
+
         ## this mu is confused to me.
         mu = (X.size) / (4.0 * nplin.norm(X,1))
-        
+
         LS0 = self.L + self.S
         ## To estimate the size of input X
         XFnorm = nplin.norm(X,'fro')
@@ -74,7 +74,7 @@ class RobustL21Autoencoder():
             print "S shape: ", self.S.shape
             print "mu: ", mu
             print "XFnorm: ", XFnorm
-        
+
         for it in xrange(iteration):
             if verbose:
                 print "Out iteration: " , it
@@ -82,10 +82,10 @@ class RobustL21Autoencoder():
             self.L = X - self.S
             ## Using L to train the auto-encoder
             print "size of L", np.sum(map(np.abs,self.L))
-            
-            self.errors.extend(self.AE.fit(X = self.L, sess = sess, 
+
+            self.errors.extend(self.AE.fit(X = self.L, sess = sess,
                                            iteration = inner_iteration,
-                                           learning_rate = learning_rate, 
+                                           learning_rate = learning_rate,
                                            batch_size = batch_size,
                                            verbose = verbose))
             print "mean of error: ", np.mean(self.errors)
@@ -99,15 +99,15 @@ class RobustL21Autoencoder():
             c1 = nplin.norm(X - self.L - self.S, 'fro') / XFnorm
             ## Converge Condition: There is no change for L and S
             c2 = np.min([mu,np.sqrt(mu)]) * nplin.norm(LS0 - self.L - self.S) / XFnorm
-            
+
             if verbose:
                 print "c1: ", c1
                 print "c2: ", c2
-                
+
             if c1 < self.error and c2 < self.error :
                 print "early break"
                 break
-            
+
             LS0 = self.L + self.S
         #self.S = shrink(self.lambda_/mu,self.S.reshape(X.size)).reshape(X.shape)
         return self.L , self.S

@@ -73,6 +73,7 @@ def compare_RDAE_DAE_l21RDAE(X, layers, lamda, folder, learning_rate = 0.15, inn
         Image.fromarray(I.tile_raster_images(X=rL,img_shape=inputsize, tile_shape=(10, 10),tile_spacing=(1, 1))).save(r"rL.png")
         rH.dump(r"rH.pkl")
         np.array(rae.errors).dump(r"RDAEerror.pkl")
+    os.chdir("../")
 if __name__ == "__main__":
 
     X = np.load(r"/home/czhou2/Documents/mnist_noise_variations_all_1_data_small.pkl")

@@ -71,7 +71,7 @@ class RobustL21Autoencoder():
         self.S = np.zeros(X.shape)
         ## one_over_mu
         ## this scaling suppose to get sparsicty about 5 iteration
-        one_over_mu = np.linalg.norm(np.linalg.norm(x,2,axis=0),1) / x.shape[1]
+        one_over_mu = np.linalg.norm(np.linalg.norm(X,2,axis=0),1) / X.shape[1]
         LS0 = self.L + self.S
         ## To estimate the size of input X
         XFnorm = np.linalg.norm(X,'fro')

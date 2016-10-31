@@ -64,7 +64,7 @@ def compare_RDAE_DAE_l21RDAE(X, layers, lamda, folder, learning_rate = 0.15, inn
         np.array(rael21.errors).dump(r"l21error.pkl")
 
 
-        rae = RDAE.RDAE(sess = sess, lambda_ = lamda, layers_sizes = layers)
+        rae = RDAE.RDAE(sess = sess, lambda_ = lamda * 10, layers_sizes = layers)
         rL, rS = rae.fit(X = X ,sess = sess, learning_rate = learning_rate, batch_size = batch_size, inner_iteration = inner, iteration = outer, verbose=True)
         rR = rae.getRecon(X, sess)
         rH = rae.transform(X, sess)
@@ -74,19 +74,58 @@ def compare_RDAE_DAE_l21RDAE(X, layers, lamda, folder, learning_rate = 0.15, inn
         rH.dump(r"rH.pkl")
         np.array(rae.errors).dump(r"RDAEerror.pkl")
     os.chdir("../")
+
+def compare_frame():
+    pass
+def onePixel_uniformNoise(data, corNum=10):
+    corruption_index = np.random.randint(low = 0, high=784, size=corNum)
+    for i in range(data.shape[0]):
+        for j in corruption_index:
+            #corrupted[i,j] = corrupted[i,j] + np.random.normal(loc=0.5, scale=0.25)
+            data[i,j] = np.random.uniform()
+    return data
+
+def onePixel_fixedNoise(data, corNum=10):
+    corruption_index = np.random.randint(low = 0, high=784, size=corNum)
+    for i in range(data.shape[0]):
+        for j in corruption_index:
+            if data[i,j] > 0.:
+                data[i,j] = 0.
+            else:
+                data[i,j] = 1.
+    return data
+def onePixel_GaussianNoise(data, corNum=10):
+    corruption_index = np.random.randint(low = 0, high=784, size=corNum)
+    for i in range(data.shape[0]):
+        for j in corruption_index:
+            #corrupted[i,j] = corrupted[i,j] + np.random.normal(loc=0.5, scale=0.25)
+            data[i,j] = np.random.normal(loc=0, scale=1)
+    return data
 if __name__ == "__main__":
 
-    X = np.load(r"/home/czhou2/Documents/mnist_noise_variations_all_1_data_small.pkl")
-
-    inner = 50
-    lamda_list = [0.1,1.,5.,10.,15.,20.,25.,50.,70.,100.]
-
+    #X = np.load(r"/home/czhou2/Documents/mnist_noise_variations_all_1_data_small.pkl")
+    #X = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    inner = 150
+    outer = 15
+    #lamda_list = [0.1,1.,5.,10.,15.,20.,25.,50.,70.,100.]
+    #layers_list =[[784,625,400,225],[784,400,225],[784,625,225],[784,625,400]]
+    lamda_list = np.arange(0.1,1,0.1)
+    cor_list = np.arange(3,30,3)
     # error,sp = tune_RDAE(x = X, lam_list = lam_list, learn_rates = learn_rates, inner = inner, outter = outter, batch_size )
     # np.array(error).dump(r"diff_X_L_S.pkl")
     # np.array(sp).dump(r"sparsities")
     #error,sp = tune_l21RDAE(x = X, lam_list = lam_list, learn_rates = learn_rates, inner = inner, outter = outter)
-    image_X = Image.fromarray(I.tile_raster_images(X = X, img_shape = (28,28), tile_shape=(10, 10),tile_spacing=(1, 1)))
-    image_X.save(r"X.png")
-    for lam in lamda_list:
-        folder = "lam" + str(lam)
-        compare_RDAE_DAE_l21RDAE(X, layers=[784,625,400,225], lamda = lam, folder = folder, learning_rate = 0.15, inner = 100, outer = 10, batch_size = 133,inputsize = (28,28))
+
+    for corNum in cor_list:
+        X = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+        X = onePixel_GaussianNoise(X, corNum=corNum)
+        cor_folder = str(corNum)
+        if not os.path.isdir(cor_folder):
+            os.makedirs(cor_folder)
+        os.chdir(cor_folder)
+        image_X = Image.fromarray(I.tile_raster_images(X = X, img_shape = (28,28), tile_shape=(10, 10),tile_spacing=(1, 1)))
+        image_X.save(r"X.png")
+        for lam in lamda_list:
+            folder = "lam" + str(lam)
+            compare_RDAE_DAE_l21RDAE(X, layers=[784,625,400], lamda = lam, folder = folder, learning_rate = 0.15, inner = inner, outer = outer, batch_size = 133,inputsize = (28,28))
+        os.chdir("../")

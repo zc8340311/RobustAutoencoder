@@ -18,7 +18,7 @@ class Deep_Autoencoder():
         for i in range(len(input_dim_list)-2,-1,-1):
 
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
 
     def fit(self, X, sess, learning_rate=0.15,
             iteration=200, batch_size=50, verbose=False):

@@ -38,7 +38,7 @@ class Deep_Autoencoder():
         recon = last_layer
 
         #cost = tf.reduce_mean(tf.square(input_x - recon))
-        cost = 200 * tf.contrib.losses.log_loss(recon, input_x)
+        cost = 200 * tf.losses.log_loss(recon, input_x)
 
         opt = tf.train.GradientDescentOptimizer(learning_rate)
 

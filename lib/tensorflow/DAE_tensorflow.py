@@ -46,21 +46,22 @@ class Deep_Autoencoder():
 
         error = []
         sample_size = X.shape[0]
-        turns = sample_size / batch_size
-
+        
+        def batches(l, n):
+            """Yield successive n-sized batches from l, the last batch is the left indexes."""
+            for i in xrange(0, l, n):
+                yield range(i,min(l,i+n))
+        
         for i in xrange(iteration):
-            for turn in xrange(turns):
-
-                start = (batch_size*turn) % sample_size
-                end = (batch_size*(turn+1)) % sample_size
-
-                sess.run(train_step,feed_dict = {input_x:X[start:end]})
-            e = cost.eval(session = sess,feed_dict = {input_x: X[start:end]})
-            if verbose and i%20==0:
-                print "    iteration : ", i ,", cost : ", e
-            error.append(e)
-
-        return error
+            for one_batch in batches(sample_size, batch_size):
+                sess.run(train_step,feed_dict = {input_x:X[one_batch]})
+    
+            if verbose:
+                e = cost.eval(session = sess,feed_dict = {input_x: X[one_batch]})
+                error.append(e)
+                if i%20==0:
+                    print "    iteration : ", i ,", cost : ", e
+        
     def transform(self, X, sess):
         new_input = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         last_layer = new_input

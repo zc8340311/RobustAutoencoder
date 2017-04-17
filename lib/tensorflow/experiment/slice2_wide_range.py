@@ -21,14 +21,14 @@ def l21RDAE_compressFeature(X, layers, lamda, folder, learning_rate = 0.01, inne
 
 def compare_frame():
 
-    X = np.load(r"/home/zc8304/Documents/packets1000_binary.npk")
+    X = np.load(r"/home/zc8304/Documents/slice2_x.npk")
     inner = 120
     outer = 10
     ## the data shape is
     #lamda_list = np.arange(0.00005,0.001,0.00005)
     lamda_list = [0.00005,0.0005,0.005,0.05,0.5,5.0,50.0]
 
-    layers = [X.shape[1], int(X.shape[1]/1000)]
+    layers = [X.shape[1], int(X.shape[1]/2)]
 
     for lam in lamda_list:
         folder = "lam" + str(lam)

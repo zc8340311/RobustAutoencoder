@@ -21,14 +21,23 @@ def l21RDAE_compressFeature(X, layers, lamda, folder, learning_rate = 0.01, inne
 
 def compare_frame():
 
-    X = np.load(r"/home/zc8304/Documents/packets1000_binary.npk")
+    X = np.load(r"/home/zc8304/Documents/packets_1000.npk")
+    X = X[:,0:1000] ## truncate the matrix if neccessary
     inner = 120
     outer = 10
-    ## the data shape is
-    #lamda_list = np.arange(0.00005,0.001,0.00005)
-    lamda_list = [0.00005,0.0005,0.005,0.05,0.5,5.0,50.0]
 
-    layers = [X.shape[1], int(X.shape[1]/1000)]
+    import pandas as pd
+
+    X = pd.DataFrame(X,dtype = str)
+
+    from sklearn.feature_extraction import DictVectorizer
+    dvec = DictVectorizer(sparse=False)
+    X = dvec.fit_transform(X.transpose().to_dict().values())
+
+    lamda_list = np.arange(0.00005,0.001,0.00005)
+
+
+    layers = [X.shape[1], int(X.shape[1]/600),int(X.shape[1]/1000)]
 
     for lam in lamda_list:
         folder = "lam" + str(lam)

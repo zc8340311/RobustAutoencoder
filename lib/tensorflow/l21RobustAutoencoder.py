@@ -87,11 +87,11 @@ class RobustL21Autoencoder():
             ## alternating project, first project to L
             self.L = X - self.S
             ## Using L to train the auto-encoder
-            self.errors.extend(self.AE.fit(self.L, sess = sess,
-                                           iteration = inner_iteration,
-                                           learning_rate = learning_rate,
-                                           batch_size = batch_size,
-                                           verbose = verbose))
+            self.AE.fit(self.L, sess = sess,
+                                    iteration = inner_iteration,
+                                    learning_rate = learning_rate,
+                                    batch_size = batch_size,
+                                    verbose = verbose)
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S and shrink S

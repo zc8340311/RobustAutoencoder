@@ -24,12 +24,12 @@ class Sparsel21_Deep_Autoencoder():
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
         sess.run(tf.global_variables_initializer())
 
-    def fit(self, X, sess, learning_rate=0.15,
+    def fit(self, X, sess, learning_rate=0.05,
             iteration=200, batch_size=50, verbose=False):
         assert X.shape[1] == self.dim_list[0]
 
-        input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
-
+        input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]],name='input')
+        print "input_x variable",input_x
         ## coding graph :
         last_layer = input_x
         for weight,bias in zip(self.W_list,self.encoding_b_list):
@@ -43,32 +43,32 @@ class Sparsel21_Deep_Autoencoder():
         recon = last_layer
 
         #cost = tf.reduce_mean(tf.square(input_x - recon))
-        cost = 200 * tf.losses.log_loss(recon, input_x) 
-        for penalty_term, sparcity in zip(self.penal_term,self.sparsities):
-            cost += sparcity * penalty_term
+        cost = 200 * tf.losses.log_loss(recon, input_x)
+        # for penalty_term, sparcity in zip(self.penal_term,self.sparsities):
+        #     cost += sparcity * penalty_term
         opt = tf.train.GradientDescentOptimizer(learning_rate)
 
         train_step = opt.minimize(cost)
 
         error = []
         sample_size = X.shape[0]
-        
+
         def batches(l, n):
             """Yield successive n-sized chunks from l."""
             for i in xrange(0, l, n):
                 yield range(i,min(l,i+n))
-        
+
         for i in xrange(iteration):
             for one_batch in batches(sample_size, batch_size):
-                sess.run(train_step,feed_dict = {input_x:X[one_batch]})
-    
+                print "X",X[one_batch].dtype,X[one_batch].shape
+                sess.run(train_step, feed_dict = {input_x : X[one_batch]})
+
             if verbose:
                 e = cost.eval(session = sess,feed_dict = {input_x: X[one_batch]})
                 error.append(e)
                 if i%20==0:
                     print "    iteration : ", i ,", cost : ", e
-                    
-        return error
+
     def transform(self, X, sess):
         new_input = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         last_layer = new_input
@@ -86,3 +86,18 @@ class Sparsel21_Deep_Autoencoder():
             last_layer = hidden
         recon = last_layer
         return recon.eval(session = sess,feed_dict={hidden_layer:hidden_data})
+if __name__ == '__main__':
+    x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+
+    with tf.Session() as sess:
+
+        sae = Sparsel21_Deep_Autoencoder(sess = sess, input_dim_list=[784,400,255],sparsities=[0.5,0.5])
+        print "x type",x.shape,x.dtype
+        error = sae.fit(x, sess = sess, iteration = 21,batch_size=97,verbose = True)
+        print error
+        h = sae.transform(x,sess=sess)
+        print "h shape",h.shape
+        R = sae.getRecon(x,sess=sess)
+        print "R",R.shape,R.dtype
+        error = sae.fit(R, sess = sess, iteration = 21,batch_size=97,verbose = True)
+        print error

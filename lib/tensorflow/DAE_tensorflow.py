@@ -46,22 +46,22 @@ class Deep_Autoencoder():
 
         error = []
         sample_size = X.shape[0]
-        
+
         def batches(l, n):
             """Yield successive n-sized batches from l, the last batch is the left indexes."""
             for i in xrange(0, l, n):
                 yield range(i,min(l,i+n))
-        
+
         for i in xrange(iteration):
             for one_batch in batches(sample_size, batch_size):
                 sess.run(train_step,feed_dict = {input_x:X[one_batch]})
-    
+
             if verbose:
                 e = cost.eval(session = sess,feed_dict = {input_x: X[one_batch]})
                 error.append(e)
                 if i%20==0:
                     print "    iteration : ", i ,", cost : ", e
-        
+
     def transform(self, X, sess):
         new_input = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         last_layer = new_input
@@ -85,9 +85,9 @@ if __name__ == "__main__":
     sess = tf.Session()
     ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,225,100])
 
-    error = ae.fit(x ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 100, verbose=True)
+    error = ae.fit(x ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 21, verbose=True)
 
     recon1 = ae.getRecon(x, sess)
-
+    error = ae.fit(recon1 ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 21, verbose=True)
     sess.close()
     print error

@@ -72,7 +72,6 @@ class RobustSparseAutoencder():
                 print "Out iteration: " , it
             ## alternating project, first project to L
             self.L = np.array(X - self.S,dtype=float)
-            print self.L.dtype
             ## Using L to train the auto-encoder
             self.SAE.fit(self.L, sess = sess,
                                     iteration = inner_iteration,
@@ -82,8 +81,7 @@ class RobustSparseAutoencder():
             ## get optmized L
             self.L = self.SAE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S and shrink S
-            self.S = self.l21shrink(self.lambda_, (X - self.L))
-            print "S after shrink",self.S.dtype
+            self.S = self.l21shrink(self.lambda_, (X - self.L).T).T
 
         return self.L , self.S
 
@@ -93,16 +91,11 @@ class RobustSparseAutoencder():
         return self.SAE.getRecon(self.L, sess = sess)
 
 
-
-
-
-
-
 if __name__ == '__main__':
     x = np.load(r"/home/zc/Documents/train_x_small.pkl")
-    x = np.array(x,dtype=float)
+    # x = np.array(x,dtype=float)
     with tf.Session() as sess:
-        rsae = RobustSparseAutoencder(sess = sess, lambda_= 4000, layers_sizes=[784,400,255,100],sparsities=[0.5,0.5,0.5])
+        rsae = RobustSparseAutoencder(sess = sess, lambda_= 4000, layers_sizes=[784,784,784,784],sparsities=[0.5,0.5,0.5])
 
         L, S = rsae.fit(x, sess = sess, inner_iteration = 20, iteration = 30,verbose = True)
         print L.shape,S.shape

@@ -1,41 +1,35 @@
 import numpy as np
 import tensorflow as tf
-import DAE_tensorflow as dae
+import SparseAutoencoder as sdae
 
 
-# def l21(x):
-#     return tf.reduce_sum(tf.sqrt(tf.reduce_sum(x ** 2 , reduction_indices = 1)))
-
-class RobustL21Autoencoder():
+class Robust_L1_SparseAutoencder():
     """
     @author: Chong Zhou
-    first version.
-    complete: 10/20/2016
 
     Des:
         X = L + S
         L is a non-linearly low dimension matrix and S is a sparse matrix.
-        argmin ||L - Decoder(Encoder(L))|| + ||S||_2,1
+        argmin ||L - Decoder(Encoder(L))||+ ||Encoder(L)||_2,1 + ||S||_2,1
         Use Alternating projection to train model
         The idea of shrink the l21 norm comes from the wiki 'Regularization' link: {
             https://en.wikipedia.org/wiki/Regularization_(mathematics)
         }
-    Improve:
-        1. fix the 0-cost bugs
+
 
     """
-    def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-5):
+    def __init__(self, sess, layers_sizes, sparsities, lambda_=1.0, error = 1.0e-5):
         self.lambda_ = lambda_
         self.layers_sizes = layers_sizes
-        self.error = error
+        self.sparcities = sparsities
         self.errors=[]
-
-        self.AE = dae.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
+        assert len(sparsities) == len(layers_sizes) - 1
+        self.SAE = sdae.Sparse_Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes,
+                                                    sparsities = self.sparcities)
 
     def l21shrink(self, epsilon, x):
         """
         auther : Chong Zhou
-        date : 10/20/2016
         Args:
             epsilon: the shrinkage parameter
             x: matrix to shrink on
@@ -57,45 +51,51 @@ class RobustL21Autoencoder():
             else:
                 output[:,i] = 0.
         return output
-
-    def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
-            iteration=20, batch_size=133, verbose=False):
+    def fit(self, X, sess, learning_rate=0.05, inner_iteration = 50,
+            iteration=20, batch_size=40, verbose=False):
         ## The first layer must be the input layer, so they should have same sizes.
         assert X.shape[1] == self.layers_sizes[0]
-        ## initialize L, S
+        ## initialize L, S, mu(shrinkage operator)
         self.L = np.zeros(X.shape)
         self.S = np.zeros(X.shape)
-        ##LS0 = self.L + self.S
+        #LS0 = self.L + self.S
         ## To estimate the size of input X
+
         if verbose:
             print "X shape: ", X.shape
             print "L shape: ", self.L.shape
             print "S shape: ", self.S.shape
+            print "X sum value", np.linalg.norm(X,'fro')
 
         for it in xrange(iteration):
             if verbose:
                 print "Out iteration: " , it
             ## alternating project, first project to L
-            self.L = X - self.S
+            self.L = np.array(X - self.S,dtype=float)
             ## Using L to train the auto-encoder
-            self.AE.fit(self.L, sess = sess,
-                        iteration = inner_iteration,
-                        learning_rate = learning_rate,
-                        batch_size = batch_size,
-                        verbose = verbose)
+            self.SAE.fit(self.L, sess = sess,
+                                    iteration = inner_iteration,
+                                    learning_rate = learning_rate,
+                                    batch_size = batch_size,
+                                    verbose = verbose)
             ## get optmized L
-            self.L = self.AE.getRecon(X = self.L, sess = sess)
+            self.L = self.SAE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S and shrink S
             self.S = self.l21shrink(self.lambda_, (X - self.L).T).T
-        return self.L , self.S
-    def transform(self, X, sess):
-        L = X - self.S
-        return self.AE.transform(X = L, sess = sess)
-    def getRecon(self, X, sess):
-        return self.AE.getRecon(self.L, sess = sess)
-if __name__ == "__main__":
-    x = np.load(r"/home/zc8304/Documents/train_x.pkl")
-    with tf.Session() as sess:
-        rae = RobustL21Autoencoder(sess = sess, lambda_= 4000, layers_sizes=[x.shape[1],int(x.shape[1]*0.5)])
 
-        L, S = rae.fit(x, sess = sess, inner_iteration = 60, iteration = 5,verbose = False)
+        return self.L , self.S
+
+    def transform(self, X, sess):
+        return self.SAE.transform(X = X, sess = sess)
+    def getRecon(self, X, sess):
+        return self.SAE.getRecon(self.L, sess = sess)
+
+
+if __name__ == '__main__':
+    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    # x = np.array(x,dtype=float)
+    with tf.Session() as sess:
+        rsae = RobustSparseAutoencder(sess = sess, lambda_= 4, layers_sizes=[784,784,784,784],sparsities=[0.5,0.5,0.5])
+
+        L, S = rsae.fit(x, sess = sess, inner_iteration = 20, iteration = 30,verbose = True)
+        print L.shape,S.shape

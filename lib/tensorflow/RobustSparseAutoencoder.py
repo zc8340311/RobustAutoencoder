@@ -24,6 +24,7 @@ class RobustSparseAutoencder():
         self.sparcities = sparsities
         self.errors=[]
         assert len(sparsities) == len(layers_sizes) - 1
+
         self.SAE = sdae.Sparsel21_Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes,
                                                     sparsities = self.sparcities)
 

@@ -14,24 +14,16 @@ class Sparse_Deep_Autoencoder():
         self.penal_term = []
         ## Encoders parameters
         for i in range(len(input_dim_list)-1):
-
             self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-0.1,0.1)))
-
             self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-0.1,0.1)))
         ## Decoders parameters
         for i in range(len(input_dim_list)-2,-1,-1):
-
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
-        sess.run(tf.global_variables_initializer())
 
-    def fit(self, X, sess, learning_rate=0.15,
-            iteration=200, batch_size=50, verbose=False):
-        assert X.shape[1] == self.dim_list[0]
-
-        input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
-
+        ## input_x is the input data
+        self.input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         ## coding graph :
-        last_layer = input_x
+        last_layer = self.input_x
         for weight,bias in zip(self.W_list,self.encoding_b_list):
             hidden = tf.sigmoid(tf.matmul(last_layer,weight) + bias)
             self.penal_term.append(tf.norm(hidden,ord=1))
@@ -41,34 +33,39 @@ class Sparse_Deep_Autoencoder():
             hidden = tf.sigmoid(tf.matmul(last_layer,tf.transpose(weight)) + bias)
             last_layer = hidden
         recon = last_layer
-
-        #cost = tf.reduce_mean(tf.square(input_x - recon))
-        cost = 200 * tf.losses.log_loss(recon, input_x) 
+        cost = tf.losses.log_loss(recon, self.input_x)
         for penalty_term, sparcity in zip(self.penal_term,self.sparsities):
             cost += sparcity * penalty_term
-        opt = tf.train.GradientDescentOptimizer(learning_rate)
+        self.cost = cost
+        sess.run(tf.global_variables_initializer())
 
-        train_step = opt.minimize(cost)
+    def fit(self, X, sess, learning_rate=0.01,
+            iteration=200, batch_size=50, verbose=False):
+        assert X.shape[1] == self.dim_list[0]
+
+
+        opt = tf.train.GradientDescentOptimizer(learning_rate)
+        train_step = opt.minimize(self.cost)
 
         error = []
         sample_size = X.shape[0]
-        
+
         def batches(l, n):
             """Yield successive n-sized chunks from l."""
             for i in xrange(0, l, n):
                 yield range(i,min(l,i+n))
-        
+
         for i in xrange(iteration):
             for one_batch in batches(sample_size, batch_size):
-                sess.run(train_step,feed_dict = {input_x:X[one_batch]})
-    
+                sess.run(train_step,feed_dict = {self.input_x:X[one_batch]})
+
             if verbose:
-                e = cost.eval(session = sess,feed_dict = {input_x: X[one_batch]})
+                e = self.cost.eval(session = sess,feed_dict = {self.input_x: X[one_batch]})
                 error.append(e)
                 if i%20==0:
                     print "    iteration : ", i ,", cost : ", e
-                    
         return error
+
     def transform(self, X, sess):
         new_input = tf.placeholder(tf.float32,[None,self.dim_list[0]])
         last_layer = new_input
@@ -86,3 +83,17 @@ class Sparse_Deep_Autoencoder():
             last_layer = hidden
         recon = last_layer
         return recon.eval(session = sess,feed_dict={hidden_layer:hidden_data})
+if __name__ == '__main__':
+    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+
+    with tf.Session() as sess:
+        sae = Sparse_Deep_Autoencoder(sess = sess, input_dim_list=[784,784,784],sparsities=[0.5,0.5])
+        print "x type",x.shape,x.dtype
+        error = sae.fit(x, sess = sess, iteration = 400,batch_size = 100,verbose = True)
+        print error
+        h = sae.transform(x,sess=sess)
+        print "h shape",h.shape
+        R = sae.getRecon(x,sess=sess)
+        print "R",R.shape,R.dtype
+        error = sae.fit(x, sess = sess, iteration = 400,batch_size = 100,verbose = True)
+        print error

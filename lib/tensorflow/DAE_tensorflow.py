@@ -80,14 +80,13 @@ class Deep_Autoencoder():
         recon = last_layer
         return recon.eval(session = sess,feed_dict={hidden_layer:hidden_data})
 if __name__ == "__main__":
-    x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+    import time
+    start_time = time.time()
 
-    sess = tf.Session()
-    ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,225,100])
+    x = np.load(r"/home/zc8304/Documents/train_x.pkl")
+    with tf.Session() as sess:
+        ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,225,100])
+        error = ae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 1000, verbose=False)
+        np.array(error).dump("error.npk")
 
-    error = ae.fit(x ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 21, verbose=True)
-
-    recon1 = ae.getRecon(x, sess)
-    error = ae.fit(recon1 ,sess = sess, learning_rate=0.1, batch_size = 40, iteration = 21, verbose=True)
-    sess.close()
-    print error
+    print "Runing time:" + str(time.time() - start_time) + " s"

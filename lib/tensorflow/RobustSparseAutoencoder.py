@@ -18,7 +18,7 @@ class RobustSparseAutoencder():
 
 
     """
-    def __init__(self, sess, layers_sizes, sparsities, lambda_=1.0, error = 1.0e-5):
+    def __init__(self, sess, layers_sizes, sparsities, lambda_=1.0):
         self.lambda_ = lambda_
         self.layers_sizes = layers_sizes
         self.sparcities = sparsities

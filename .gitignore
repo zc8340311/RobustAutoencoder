@@ -1,0 +1,46 @@
+# The tmp directory
+tmp/
+# Python compiled files
+*.pyc
+# Python checkpoints
+.ipynb_checkpoints/
+# Emacs auto save files
+*~
+# Data files
+*.h5
+# LaTeX files
+*.aux
+*.glo
+*.idx
+*.log
+*.toc
+*.ist
+*.acn
+*.acr
+*.alg
+*.bbl
+*.blg
+*.dvi
+*.glg
+*.gls
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc1
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.nav
+*.snm
+auto/
+# R files
+.RData
+.Rhistory
+# Thumbnails
+Thumbs.db
+# profile data
+stats

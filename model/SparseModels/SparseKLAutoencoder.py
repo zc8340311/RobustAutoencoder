@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-class Sparse_KL_Deep_Autoencoder():
+class KL_Sparse_Autoencoder():
     def __init__(self, sess, input_dim_list=[784,400], sparsities = [0.5],sparse_ratios = [0.2]):
         """input_dim_list must include the original data dimension"""
         assert len(input_dim_list) >= 2

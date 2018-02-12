@@ -1,12 +1,9 @@
 import numpy as np
 import tensorflow as tf
-import DAE_tensorflow as dae
+from BasicAutoencoder import DeepAE as DAE
+from shrink import l21shrink as SHR 
 
-
-# def l21(x):
-#     return tf.reduce_sum(tf.sqrt(tf.reduce_sum(x ** 2 , reduction_indices = 1)))
-
-class RobustL21Autoencoder():
+class RobustL21Autoencoder(object):
     """
     @author: Chong Zhou
     first version.
@@ -24,39 +21,18 @@ class RobustL21Autoencoder():
         1. fix the 0-cost bugs
 
     """
-    def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-5):
+    def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-8):
+        """
+        sess: a Tensorflow tf.Session object
+        layers_sizes: a list that contain the deep ae layer sizes, including the input layer
+        lambda_: tuning the weight of l1 penalty of S
+        error: converge criterior for jump out training iteration
+        """
         self.lambda_ = lambda_
         self.layers_sizes = layers_sizes
         self.error = error
         self.errors=[]
-
-        self.AE = dae.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
-
-    def l21shrink(self, epsilon, x):
-        """
-        auther : Chong Zhou
-        date : 10/20/2016
-        Args:
-            epsilon: the shrinkage parameter
-            x: matrix to shrink on
-        Ref:
-            wiki Regularization: {https://en.wikipedia.org/wiki/Regularization_(mathematics)}
-        Returns:
-            The shrunk matrix
-        """
-        output = x.copy()
-        norm = np.linalg.norm(x, ord=2, axis=0)
-
-        for i in xrange(x.shape[1]):
-            if norm[i] > epsilon:
-                for j in xrange(x.shape[0]):
-                    output[j,i] = x[j,i] - epsilon * x[j,i] / norm[i]
-            elif norm[i] < -epsilon:
-                for j in xrange(x.shape[0]):
-                    output[j,i] = x[j,i] + epsilon * x[j,i] / norm[i]
-            else:
-                output[:,i] = 0.
-        return output
+        self.AE = DAE.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
 
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
             iteration=20, batch_size=133, verbose=False):
@@ -86,7 +62,7 @@ class RobustL21Autoencoder():
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S and shrink S
-            self.S = self.l21shrink(self.lambda_, (X - self.L).T).T
+            self.S = SHR.l21shrink(self.lambda_, (X - self.L).T).T
         return self.L , self.S
     def transform(self, X, sess):
         L = X - self.S
@@ -94,8 +70,9 @@ class RobustL21Autoencoder():
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
 if __name__ == "__main__":
-    x = np.load(r"/home/zc8304/Documents/train_x.pkl")
+    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
     with tf.Session() as sess:
-        rae = RobustL21Autoencoder(sess = sess, lambda_= 4000, layers_sizes=[x.shape[1],int(x.shape[1]*0.5)])
+        rae = RobustL21Autoencoder(sess = sess, lambda_= 20, layers_sizes=[x.shape[1],int(x.shape[1]*0.5)])
 
-        L, S = rae.fit(x, sess = sess, inner_iteration = 60, iteration = 5,verbose = False)
+        L, S = rae.fit(x, sess = sess, inner_iteration = 60, iteration = 5,verbose = True)
+        

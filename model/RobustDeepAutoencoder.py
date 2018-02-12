@@ -1,53 +1,34 @@
 import numpy as np
-import math
 import numpy.linalg as nplin
 import tensorflow as tf
-import DAE_tensorflow as DAE
-def shrink(epsilon, x):
-    """
-    @Original Author: Prof. Randy
-    @Modified by: Chong Zhou
-
-    Args:
-        epsilon: the shrinkage parameter (either a scalar or a vector)
-        x: the vector to shrink on
-
-    Returns:
-        The shrunk vector
-    """
-    output = np.array(x*0.)
-
-    for i in xrange(len(x)):
-        if x[i] > epsilon:
-            output[i] = x[i] - epsilon
-        elif x[i] < -epsilon:
-            output[i] = x[i] + epsilon
-        else:
-            output[i] = 0
-    return output
-
-class RDAE():
+from BasicAutoencoder import DeepAE as DAE
+from shrink import l1shrink as SHR 
+class RDAE(object):
     """
     @author: Chong Zhou
     2.0 version.
     complete: 10/17/2016
     version changes: move implementation from theano to tensorflow.
-
+    3.0
+    complete: 2/12/2018
+    changes: delete unused parameter, move shrink function to other file
     Des:
         X = L + S
         L is a non-linearly low rank matrix and S is a sparse matrix.
         argmin ||L - Decoder(Encoder(L))|| + ||S||_1
         Use Alternating projection to train model
     """
-    def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-5,  seeds = 10,
-                penOfOverfitting = 0.1):
+    def __init__(self, sess, layers_sizes, lambda_=1.0, error = 1.0e-7):
+        """
+        sess: a Tensorflow tf.Session object
+        layers_sizes: a list that contain the deep ae layer sizes, including the input layer
+        lambda_: tuning the weight of l1 penalty of S
+        error: converge criterior for jump out training iteration
+        """
         self.lambda_ = lambda_
         self.layers_sizes = layers_sizes
         self.error = error
-        self.penOfOverfitting = penOfOverfitting
-        self.seeds = seeds #list of seed number for each layer
         self.errors=[]
-
         self.AE = DAE.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
 
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
@@ -59,10 +40,8 @@ class RDAE():
         self.L = np.zeros(X.shape)
         self.S = np.zeros(X.shape)
 
-        penOfOverfitting = self.penOfOverfitting
-
         mu = (X.size) / (4.0 * nplin.norm(X,1))
-        print self.lambda_ / mu
+        print "shrink parameter:", self.lambda_ / mu
         LS0 = self.L + self.S
 
         XFnorm = nplin.norm(X,'fro')
@@ -87,11 +66,11 @@ class RDAE():
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S
-            self.S = shrink(self.lambda_/mu, (X - self.L).reshape(X.size)).reshape(X.shape)
+            self.S = SHR.shrink(self.lambda_/mu, (X - self.L).reshape(X.size)).reshape(X.shape)
 
-            ## the L and S are close enough to X
+            ## break criterion 1: the L and S are close enough to X
             c1 = nplin.norm(X - self.L - self.S, 'fro') / XFnorm
-            ## There is no change for L and S
+            ## break criterion 2: there is no changes for L and S 
             c2 = np.min([mu,np.sqrt(mu)]) * nplin.norm(LS0 - self.L - self.S) / XFnorm
 
             if verbose:
@@ -101,9 +80,9 @@ class RDAE():
             if c1 < self.error and c2 < self.error :
                 print "early break"
                 break
-
+            ## save L + S for c2 check in the next iteration
             LS0 = self.L + self.S
-        #self.S = shrink(self.lambda_/mu,self.S.reshape(X.size)).reshape(X.shape)
+            
         return self.L , self.S
     def transform(self, X, sess):
         L = X - self.S
@@ -111,17 +90,17 @@ class RDAE():
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
 if __name__ == "__main__":
-	x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+	x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
 	sess = tf.Session()
-	rae = RDAE(sess = sess, seeds = 1.0, lambda_= 80, layers_sizes=[784,400])
+	rae = RDAE(sess = sess, lambda_= 2000, layers_sizes=[784,400])
 
-	L, S = rae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 40, inner_iteration = 50,
+	L, S = rae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 40, inner_iteration = 50, 
 		    iteration=5, verbose=True)
 
 	recon_rae = rae.getRecon(x, sess = sess)
 
 	sess.close()
-	print rae.errors
+	print "cost errors, not used for now:", rae.errors
 	from collections import Counter
-	print Counter(S.reshape(S.size))[0]
+	print "number of zero values in S:", Counter(S.reshape(S.size))[0]
 	print

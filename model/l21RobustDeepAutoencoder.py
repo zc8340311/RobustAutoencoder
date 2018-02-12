@@ -1,10 +1,7 @@
 import numpy as np
 import tensorflow as tf
-import DAE_tensorflow as dae
-
-
-# def l21(x):
-#     return tf.reduce_sum(tf.sqrt(tf.reduce_sum(x ** 2 , reduction_indices = 1)))
+from BasicAutoencoder import DeepAE as DAE
+from shrink import l21shrink as SHR 
 
 class RobustL21Autoencoder():
     """
@@ -30,33 +27,7 @@ class RobustL21Autoencoder():
         self.error = error
         self.errors=[]
 
-        self.AE = dae.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
-
-    def l21shrink(self, epsilon, x):
-        """
-        auther : Chong Zhou
-        date : 10/20/2016
-        Args:
-            epsilon: the shrinkage parameter
-            x: matrix to shrink on
-        Ref:
-            wiki Regularization: {https://en.wikipedia.org/wiki/Regularization_(mathematics)}
-        Returns:
-            The shrunk matrix
-        """
-        output = x.copy()
-        norm = np.linalg.norm(x, ord=2, axis=0)
-
-        for i in xrange(x.shape[1]):
-            if norm[i] > epsilon:
-                for j in xrange(x.shape[0]):
-                    output[j,i] = x[j,i] - epsilon * x[j,i] / norm[i]
-            elif norm[i] < -epsilon:
-                for j in xrange(x.shape[0]):
-                    output[j,i] = x[j,i] + epsilon * x[j,i] / norm[i]
-            else:
-                output[:,i] = 0.
-        return output
+        self.AE = DAE.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
 
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
             iteration=20, batch_size=40, verbose=False):
@@ -65,19 +36,13 @@ class RobustL21Autoencoder():
         ## initialize L, S, mu(shrinkage operator)
         self.L = np.zeros(X.shape)
         self.S = np.zeros(X.shape)
-        ## one_over_mu
-        ## this scaling suppose to get sparsicty about 5 iteration
-        one_over_mu = np.linalg.norm(np.linalg.norm(X,2,axis=0),1) / X.shape[1]
-        LS0 = self.L + self.S
+        
         ## To estimate the size of input X
-
         if verbose:
             print "X shape: ", X.shape
             print "L shape: ", self.L.shape
             print "S shape: ", self.S.shape
-            XFnorm = np.linalg.norm(X,'fro')
-            print "XFnorm: ", XFnorm
-
+            
         for it in xrange(iteration):
             if verbose:
                 print "Out iteration: " , it
@@ -92,15 +57,8 @@ class RobustL21Autoencoder():
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)
             ## alternating project, now project to S and shrink S
-            self.S = self.l21shrink(self.lambda_ * one_over_mu, (X - self.L))
-            ## Converge Condition: the L and S are close enough to X
-            c1 = np.linalg.norm(X - self.L - self.S, 'fro') / XFnorm
-            if c1 < self.error:
-                print "early break"
-                if verbose:
-                    print "c1: ", c1
-                break
-            LS0 = self.L + self.S
+            self.S = SHR.l21shrink(self.lambda_, (X - self.L))
+            
         return self.L , self.S
     def transform(self, X, sess):
         L = X - self.S
@@ -108,7 +66,7 @@ class RobustL21Autoencoder():
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
 if __name__ == "__main__":
-    x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
     with tf.Session() as sess:
         rae = RobustL21Autoencoder(sess = sess, lambda_= 4000, layers_sizes=[784,400,255,100])
 

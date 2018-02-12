@@ -25,7 +25,6 @@ class Sparsel21_Deep_Autoencoder():
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
 
         self.input_x = tf.placeholder(tf.float32,[None,self.dim_list[0]])
-
         ## coding graph :
         last_layer = self.input_x
         for weight,bias in zip(self.W_list,self.encoding_b_list):

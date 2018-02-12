@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-class Deep_Autoencoder():
+class Deep_Autoencoder(object):
     def __init__(self, sess, input_dim_list=[784,400]):
         """input_dim_list must include the original data dimension"""
         assert len(input_dim_list) >= 2
@@ -10,14 +10,15 @@ class Deep_Autoencoder():
         self.dim_list = input_dim_list
         ## Encoders parameters
         for i in range(len(input_dim_list)-1):
-
             self.W_list.append(tf.Variable(tf.random_uniform([self.dim_list[i],self.dim_list[i+1]],-0.1,0.1)))
-
             self.encoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i+1]],-0.1,0.1)))
         ## Decoders parameters
         for i in range(len(input_dim_list)-2,-1,-1):
-
             self.decoding_b_list.append(tf.Variable(tf.random_uniform([self.dim_list[i]],-0.1,0.1)))
+
+        
+
+
         sess.run(tf.global_variables_initializer())
 
     def fit(self, X, sess, learning_rate=0.15,

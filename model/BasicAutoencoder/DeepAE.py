@@ -35,8 +35,8 @@ class Deep_Autoencoder(object):
             last_layer = hidden
         self.recon = last_layer
    
-        #self.cost = tf.reduce_mean(tf.square(self.input_x - self.recon))
-        self.cost = tf.losses.log_loss(self.recon, self.input_x)
+        self.cost = tf.reduce_mean(tf.square(self.input_x - self.recon))
+        #self.cost = tf.losses.log_loss(self.recon, self.input_x)
 
         sess.run(tf.global_variables_initializer())
 

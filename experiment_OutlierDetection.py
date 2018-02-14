@@ -29,7 +29,7 @@ def experiment_frame():
     inner = 100
     outer = 8
 
-    lamda_list = sorted([0.00001,0.00005,0.00008,0.0001,0.0003,0.0005,0.0008,0.001,0.0015] + list(np.arange(0.0005,0.0008,0.00005)))
+    lamda_list = np.arange(0.001,0.01,0.001)
 
     layers = [784, 400, 200] ## S trans
     folder = r"OutlierDetectionResult"

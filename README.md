@@ -38,5 +38,5 @@ If you find this repo useful and would like to cite it, citing our paper as the 
 }
 ```
 ## Reference
-[1]Abadi, Martín, et al. "TensorFlow: A System for Large-Scale Machine Learning." OSDI. Vol. 16. 2016.
+[1]Abadi, Martín, et al. "TensorFlow: A System for Large-Scale Machine Learning." OSDI. Vol. 16. 2016. <br>
 [2]LeCun, Yann, Corinna Cortes, and C. J. Burges. "MNIST handwritten digit database." AT&T Labs [Online]. Available: [MNIST](http://yann.lecun.com/exdb/mnist) (2010).

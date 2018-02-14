@@ -1,5 +1,5 @@
 # Robust Autoencoder
-Robust autoencoder is a model that combine auto-encoder and robust PCA which can detect both noise and outliers. This repo is Tensorflow implementation of Robust Autoencoder.
+Robust autoencoder is a model that combines Autoencoder and Robust PCA which can detect both noise and outliers. This repo offers an implementation based on Tensorflow.
 ## Updates
 02/12/2018: remove theano implementation. <br>
 02/14/2018: clean up codes and put implementation into model/ <br>
@@ -38,4 +38,5 @@ If you find this repo useful and would like to cite it, citing our paper as the 
 }
 ```
 ## Reference
-[1]LeCun, Yann, Corinna Cortes, and C. J. Burges. "MNIST handwritten digit database." AT&T Labs [Online]. Available: [MNIST](http://yann.lecun.com/exdb/mnist) 2 (2010).
+[1]Abadi, Martín, et al. "TensorFlow: A System for Large-Scale Machine Learning." OSDI. Vol. 16. 2016.
+[2]LeCun, Yann, Corinna Cortes, and C. J. Burges. "MNIST handwritten digit database." AT&T Labs [Online]. Available: [MNIST](http://yann.lecun.com/exdb/mnist) (2010).

@@ -1,4 +1,4 @@
-# RobustAE
+# Robust Autoencoder
 Robust autoencoder is a model that combine auto-encoder and robust PCA which can detect both noise and outliers. This repo is Tensorflow implementation of Robust Autoencoder.
 ## Updates
 02/12/2018: remove theano implementation. <br>

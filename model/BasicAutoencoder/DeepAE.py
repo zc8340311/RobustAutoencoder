@@ -37,20 +37,17 @@ class Deep_Autoencoder(object):
    
         self.cost = tf.reduce_mean(tf.square(self.input_x - self.recon))
         #self.cost = tf.losses.log_loss(self.recon, self.input_x)
-
+        self.train_step = tf.train.AdamOptimizer().minimize(self.cost)
         sess.run(tf.global_variables_initializer())
 
     def fit(self, X, sess, learning_rate=0.15,
             iteration=200, batch_size=50, verbose=False):
         assert X.shape[1] == self.dim_list[0]
   
-        opt = tf.train.GradientDescentOptimizer(learning_rate)
-        train_step = opt.minimize(self.cost)
-
         sample_size = X.shape[0]
         for i in xrange(iteration):
             for one_batch in batches(sample_size, batch_size):
-                sess.run(train_step,feed_dict = {self.input_x:X[one_batch]})
+                sess.run(self.train_step,feed_dict = {self.input_x:X[one_batch]})
 
             if verbose and i%20==0:
                 e = self.cost.eval(session = sess,feed_dict = {self.input_x: X[one_batch]})
@@ -91,13 +88,14 @@ def test():
     print "size 50,000 Runing time:" + str(time.time() - start_time) + " s"
 if __name__ == "__main__":
     import time
-
-    x = np.load(r"/home/czhou2/Documents/train_x.pkl")
+    import os
+    os.chdir("../../")
+    x = np.load(r"./data/data.npk")
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,225,100])
-        error = ae.fit(x[:100] ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 500, verbose=True)
-
-    print "size 100 Runing time:" + str(time.time() - start_time) + " s"
-    
+        error = ae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 500, verbose=True)
+        R = ae.getRecon(x, sess = sess)
+        print "size 100 Runing time:" + str(time.time() - start_time) + " s"
+        error = ae.fit(R ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 500, verbose=True)
     #test()

@@ -29,8 +29,8 @@ def experiment_frame():
     inner = 100
     outer = 8
 
-    lamda_list = np.arange(0.001,0.01,0.001)
-
+    lamda_list = np.arange(0.00013,0.0005,0.00001)
+    
     layers = [784, 400, 200] ## S trans
     folder = r"OutlierDetectionResult"
     if not os.path.isdir(folder):
@@ -41,7 +41,7 @@ def experiment_frame():
     image_X.save(r"X.png")
     for lam in lamda_list:
         folder = "lam" + str(lam)
-        l21RDAE(X = X, layers=layers, lamda = lam, folder = folder, learning_rate = 0.05, 
+        l21RDAE(X = X, layers=layers, lamda = lam, folder = folder, learning_rate = 0.005, 
                 inner = inner, outer = outer, batch_size = 133,inputsize = (28,28))
     os.chdir("../")
 if __name__ == "__main__":

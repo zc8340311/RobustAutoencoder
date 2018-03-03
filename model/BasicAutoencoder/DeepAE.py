@@ -41,9 +41,10 @@ class Deep_Autoencoder(object):
         sess.run(tf.global_variables_initializer())
 
     def fit(self, X, sess, learning_rate=0.15,
-            iteration=200, batch_size=50, verbose=False):
+            iteration=200, batch_size=50, init=False,verbose=False):
         assert X.shape[1] == self.dim_list[0]
-  
+        if init:
+            sess.run(tf.global_variables_initializer())
         sample_size = X.shape[0]
         for i in xrange(iteration):
             for one_batch in batches(sample_size, batch_size):

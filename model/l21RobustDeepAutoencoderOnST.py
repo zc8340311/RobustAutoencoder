@@ -35,7 +35,7 @@ class RobustL21Autoencoder(object):
         self.AE = DAE.Deep_Autoencoder( sess = sess, input_dim_list = self.layers_sizes)
 
     def fit(self, X, sess, learning_rate=0.15, inner_iteration = 50,
-            iteration=20, batch_size=133, verbose=False):
+            iteration=20, batch_size=133, re_init = False,verbose=False):
         ## The first layer must be the input layer, so they should have same sizes.
         assert X.shape[1] == self.layers_sizes[0]
         ## initialize L, S
@@ -58,6 +58,7 @@ class RobustL21Autoencoder(object):
                         iteration = inner_iteration,
                         learning_rate = learning_rate,
                         batch_size = batch_size,
+                        init = re_init,
                         verbose = verbose)
             ## get optmized L
             self.L = self.AE.getRecon(X = self.L, sess = sess)

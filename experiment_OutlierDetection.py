@@ -26,10 +26,10 @@ def l21RDAE(X, layers, lamda, folder, learning_rate = 0.15, inner = 100, outer =
 def experiment_frame():
     X = np.load(r"./data/data.npk")
 
-    inner = 100
-    outer = 10
+    inner = 50
+    outer = 20
 
-    lamda_list = np.arange(0.00015,0.00035,0.00001)
+    lamda_list = np.arange(0.00035,0.0015,0.0001)
     
     layers = [784, 400, 200] ## S trans
     folder = r"OutlierDetectionResult"

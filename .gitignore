@@ -1,5 +1,7 @@
 # The tmp directory
 tmp/
+# result directory
+OutlierDetectionResult/
 # Python compiled files
 *.pyc
 # Python checkpoints

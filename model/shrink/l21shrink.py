@@ -18,9 +18,6 @@ def l21shrink(epsilon, x):
         if norm[i] > epsilon:
             for j in xrange(x.shape[0]):
                 output[j,i] = x[j,i] - epsilon * x[j,i] / norm[i]
-        elif norm[i] < -epsilon:
-            for j in xrange(x.shape[0]):
-                output[j,i] = x[j,i] + epsilon * x[j,i] / norm[i]
         else:
             output[:,i] = 0.
     return output

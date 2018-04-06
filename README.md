@@ -3,7 +3,7 @@ Robust autoencoder is a model that combines Autoencoder and Robust PCA which can
 ## Updates
 02/12/2018: remove theano implementation. <br>
 02/14/2018: clean up codes and put implementation into model/ <br>
-
+04/06/2018: Thanks to [Tengke-Xiong](https://github.com/Tengke-Xiong). delete wrong part on l21shrink. 
 ## Prerequisities
 
 - Python 2.7

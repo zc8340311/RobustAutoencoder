@@ -90,7 +90,7 @@ class RDAE(object):
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
 if __name__ == "__main__":
-	x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+	x = np.load(r"../data/data.npk")
 	sess = tf.Session()
 	rae = RDAE(sess = sess, lambda_= 2000, layers_sizes=[784,400])
 

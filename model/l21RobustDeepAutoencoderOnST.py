@@ -71,7 +71,7 @@ class RobustL21Autoencoder(object):
     def getRecon(self, X, sess):
         return self.AE.getRecon(self.L, sess = sess)
 if __name__ == "__main__":
-    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    x = np.load(r"../data/data.npk")
     with tf.Session() as sess:
         rae = RobustL21Autoencoder(sess = sess, lambda_= 20, layers_sizes=[x.shape[1],int(x.shape[1]*0.5)])
 

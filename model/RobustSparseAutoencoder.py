@@ -93,7 +93,7 @@ class RobustSparseAutoencder():
 
 
 if __name__ == '__main__':
-    x = np.load(r"/home/zc/Documents/train_x_small.pkl")
+    x = np.load(r"../data/data.npk")
     # x = np.array(x,dtype=float)
     with tf.Session() as sess:
         rsae = RobustSparseAutoencder(sess = sess, lambda_= 4000, layers_sizes=[784,784,784,784],sparsities=[0.5,0.5,0.5])

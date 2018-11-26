@@ -12,7 +12,7 @@ Robust autoencoder is a model that combines Autoencoder and Robust PCA which can
 
 # Shortcut:
  - **Denoising Model** with l1 regularization on S is at:<br>
-["l1 Robust Autoencoder"](https://github.com/zc8340311/RobustAutoencoder/blob/master/model/l21RobustDeepAutoencoder.py) <br>
+["l1 Robust Autoencoder"](https://github.com/zc8340311/RobustAutoencoder/blob/master/model/RobustDeepAutoencoder.py) <br>
  - **Outlier Detection Model** with l21 regularization on S.T is at:<br>
 ["l21 Robust Autoencoder"](https://github.com/zc8340311/RobustAutoencoder/blob/master/model/l21RobustDeepAutoencoderOnST.py) <br>
  - **Dataset and demo**: The outlier detection data is sampled from famous MNIST dataset. The .npk file and .txt file are same, but .npk is only load by python2 numpy. Please file more details at demo:<br>

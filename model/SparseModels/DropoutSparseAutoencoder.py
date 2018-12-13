@@ -64,7 +64,7 @@ class Dropout_Sparse_Autoencoder():
                 sess.run(train_step,feed_dict = {self.input_x:X[one_batch]})
 
             if verbose and i%20==0:
-                e = self.cost.eval(session = sess,feed_dict = {self.input_x: X[one_batch]})
+                e = self.cost.eval(session = sess,feed_dict = {self.input_x: X})
                 print "    iteration : ", i ,", cost : ", e
         return 
     

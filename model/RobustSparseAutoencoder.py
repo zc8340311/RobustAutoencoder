@@ -89,7 +89,7 @@ class RobustSparseAutoencder():
     def transform(self, X, sess):
         return self.SAE.transform(X = X, sess = sess)
     def getRecon(self, X, sess):
-        return self.SAE.getRecon(self.L, sess = sess)
+        return self.SAE.getRecon(X, sess = sess)
 
 
 if __name__ == '__main__':

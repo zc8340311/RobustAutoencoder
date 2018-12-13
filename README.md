@@ -4,6 +4,7 @@ Robust autoencoder is a model that combines Autoencoder and Robust PCA which can
 02/12/2018: remove theano implementation. <br>
 02/14/2018: clean up codes and put implementation into model/ <br>
 04/06/2018: Thanks to [Tengke-Xiong](https://github.com/Tengke-Xiong). delete wrong part on l21shrink. 
+12/13/2018: Thanks to [Roberto](https://github.com/robroe-tsi). change getRecon function which will accept X instead of L. This change allows Robust Autoencoder can detect anomalies in new data.
 ## Prerequisities
 
 - Python 2.7

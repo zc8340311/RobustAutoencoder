@@ -88,7 +88,7 @@ class RDAE(object):
         L = X - self.S
         return self.AE.transform(X = L, sess = sess)
     def getRecon(self, X, sess):
-        return self.AE.getRecon(self.L, sess = sess)
+        return self.AE.getRecon(X, sess = sess)
 if __name__ == "__main__":
 	x = np.load(r"../data/data.npk")
 	sess = tf.Session()

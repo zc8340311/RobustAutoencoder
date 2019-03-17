@@ -8,10 +8,12 @@ Robust autoencoder is a model that combines Autoencoder and Robust PCA which can
 04/06/2018: Thanks to [Tengke-Xiong](https://github.com/Tengke-Xiong). delete wrong part on l21shrink. 
 
 12/13/2018: Thanks to [Roberto](https://github.com/robroe-tsi). change getRecon function which will accept X instead of L. This change allows Robust Autoencoder can detect anomalies in new data.
+
+03/17/2019: Upgrade to python3 and repeat experiments of outlier detection.
 ## Prerequisities
 
-- Python 2.7
-- Numpy
+- Python 3
+- Numpy3
 - Tensorflow
 
 # Shortcut:

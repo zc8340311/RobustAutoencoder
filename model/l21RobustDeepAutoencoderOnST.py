@@ -8,7 +8,7 @@ class RobustL21Autoencoder(object):
     @author: Chong Zhou
     first version.
     complete: 10/20/2016
-
+    Updated to python3
     Des:
         X = L + S
         L is a non-linearly low dimension matrix and S is a sparse matrix.
@@ -44,13 +44,13 @@ class RobustL21Autoencoder(object):
         ##LS0 = self.L + self.S
         ## To estimate the size of input X
         if verbose:
-            print "X shape: ", X.shape
-            print "L shape: ", self.L.shape
-            print "S shape: ", self.S.shape
+            print ("X shape: ", X.shape)
+            print ("L shape: ", self.L.shape)
+            print ("S shape: ", self.S.shape)
 
-        for it in xrange(iteration):
+        for it in range(iteration):
             if verbose:
-                print "Out iteration: " , it
+                print ("Out iteration: " , it)
             ## alternating project, first project to L
             self.L = X - self.S
             ## Using L to train the auto-encoder
@@ -65,13 +65,16 @@ class RobustL21Autoencoder(object):
             ## alternating project, now project to S and shrink S
             self.S = SHR.l21shrink(self.lambda_, (X - self.L).T).T
         return self.L , self.S
+    
     def transform(self, X, sess):
         L = X - self.S
         return self.AE.transform(X = L, sess = sess)
+    
     def getRecon(self, X, sess):
         return self.AE.getRecon(X, sess = sess)
+    
 if __name__ == "__main__":
-    x = np.load(r"../data/data.npk")
+    x = np.load(r"../data/data.npk")[:500]
     with tf.Session() as sess:
         rae = RobustL21Autoencoder(sess = sess, lambda_= 20, layers_sizes=[x.shape[1],int(x.shape[1]*0.5)])
 

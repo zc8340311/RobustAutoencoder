@@ -1,8 +1,9 @@
 import tensorflow as tf
 import numpy as np
+
 def batches(l, n):
     """Yield successive n-sized batches from l, the last batch is the left indexes."""
-    for i in xrange(0, l, n):
+    for i in range(0, l, n):
         yield range(i,min(l,i+n))
 class Deep_Autoencoder(object):
     def __init__(self, sess, input_dim_list=[784,400]):
@@ -35,8 +36,8 @@ class Deep_Autoencoder(object):
             last_layer = hidden
         self.recon = last_layer
    
-        self.cost = tf.reduce_mean(tf.square(self.input_x - self.recon))
-        #self.cost = tf.losses.log_loss(self.recon, self.input_x)
+        self.cost = 200 * tf.reduce_mean(tf.square(self.input_x - self.recon))
+#         self.cost = 200*tf.losses.log_loss(self.recon, self.input_x)
         self.train_step = tf.train.AdamOptimizer().minimize(self.cost)
         sess.run(tf.global_variables_initializer())
 
@@ -46,47 +47,49 @@ class Deep_Autoencoder(object):
         if init:
             sess.run(tf.global_variables_initializer())
         sample_size = X.shape[0]
-        for i in xrange(iteration):
+        for i in range(iteration):
             for one_batch in batches(sample_size, batch_size):
                 sess.run(self.train_step,feed_dict = {self.input_x:X[one_batch]})
 
             if verbose and i%20==0:
                 e = self.cost.eval(session = sess,feed_dict = {self.input_x: X})
-                print "    iteration : ", i ,", cost : ", e
+                print ("    iteration : ", i ,", cost : ", e)
 
     def transform(self, X, sess):
         return self.hidden.eval(session = sess, feed_dict={self.input_x: X})
 
     def getRecon(self, X, sess):
         return self.recon.eval(session = sess,feed_dict={self.input_x: X})
+    
+##################### test a machine with different data size#####################  
 def test():
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,400,225,100])
         error = ae.fit(x[:1000] ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 1000, verbose=False)
 
-    print "size 1000 Runing time:" + str(time.time() - start_time) + " s"
+    print ("size 1000 Runing time:" + str(time.time() - start_time) + " s")
 
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,400,225,100])
         error = ae.fit(x[:10000] ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 1000, verbose=False)
 
-    print "size 10,000 Runing time:" + str(time.time() - start_time) + " s"
+    print ("size 10,000 Runing time:" + str(time.time() - start_time) + " s")
 
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,400,225,100])
         error = ae.fit(x[:20000] ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 1000, verbose=False)
 
-    print "size 20,000 Runing time:" + str(time.time() - start_time) + " s"
+    print ("size 20,000 Runing time:" + str(time.time() - start_time) + " s")
 
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,625,400,225,100])
         error = ae.fit(x[:50000] ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 1000, verbose=False)
 
-    print "size 50,000 Runing time:" + str(time.time() - start_time) + " s"
+    print ("size 50,000 Runing time:" + str(time.time() - start_time) + " s")
 if __name__ == "__main__":
     import time
     import os
@@ -97,6 +100,6 @@ if __name__ == "__main__":
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,225,100])
         error = ae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 500, verbose=True)
         R = ae.getRecon(x, sess = sess)
-        print "size 100 Runing time:" + str(time.time() - start_time) + " s"
+        print ("size 100 Runing time:" + str(time.time() - start_time) + " s")
         error = ae.fit(R ,sess = sess, learning_rate=0.01, batch_size = 500, iteration = 500, verbose=True)
     #test()

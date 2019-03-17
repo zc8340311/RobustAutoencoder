@@ -5,6 +5,11 @@ import sys
 sys.path.append("../")
 from shrink import l21shrink as SHR
 
+"""
+Updated to python3
+
+"""
+
 class RobustDropoutSparseAutoencder():
     """
     @author: Chong Zhou
@@ -36,13 +41,13 @@ class RobustDropoutSparseAutoencder():
         #LS0 = self.L + self.S
         ## To estimate the size of input X
         if verbose:
-            print "X shape: ", X.shape
-            print "L shape: ", self.L.shape
-            print "S shape: ", self.S.shape
+            print ("X shape: ", X.shape)
+            print ("L shape: ", self.L.shape)
+            print ("S shape: ", self.S.shape)
 
-        for it in xrange(iteration):
+        for it in range(iteration):
             if verbose:
-                print "Out iteration: " , it
+                print ("Out iteration: " , it)
             ## alternating project, first project to L
             self.L = np.array(X - self.S,dtype=float)
             ## Using L to train the auto-encoder
@@ -65,9 +70,9 @@ class RobustDropoutSparseAutoencder():
 
 
 if __name__ == '__main__':
-    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    x = np.load(r"../../data/data.npk")[:500]
     with tf.Session() as sess:
-        rsae = RobustDropoutSparseAutoencder(sess = sess, lambda_= 4000, layers_sizes=[784,784,784,784],sparsities = [0.5,0.5,0.5])
+        rsae = RobustDropoutSparseAutoencder(sess = sess, lambda_= 4000, layers_sizes=[784,200,100],sparsities = [0.5,0.5,0.5])
 
         L, S = rsae.fit(x, sess = sess, inner_iteration = 40, iteration = 10,verbose = True)
-        print L.shape,S.shape
+        print (L.shape,S.shape)

@@ -1,10 +1,13 @@
 import tensorflow as tf
 import numpy as np
+"""
+Updated to python3: 03/15/2019
 
+"""
 
 def batches(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in xrange(0, l, n):
+    for i in range(0, l, n):
         yield range(i,min(l,i+n))
 
 
@@ -59,13 +62,13 @@ class Dropout_Sparse_Autoencoder():
 
         sample_size = X.shape[0]
 
-        for i in xrange(iteration):
+        for i in range(iteration):
             for one_batch in batches(sample_size, batch_size):
                 sess.run(train_step,feed_dict = {self.input_x:X[one_batch]})
 
             if verbose and i%20==0:
                 e = self.cost.eval(session = sess,feed_dict = {self.input_x: X})
-                print "    iteration : ", i ,", cost : ", e
+                print ("    iteration : ", i ,", cost : ", e)
         return 
     
     def transform(self, X, sess):
@@ -73,18 +76,19 @@ class Dropout_Sparse_Autoencoder():
 
     def getRecon(self, X, sess):
         return self.recon.eval(session = sess,feed_dict={self.input_x: X})
+    
 if __name__ == '__main__':
-    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    x = np.load(r"../../data/data.npk")
 
     with tf.Session() as sess:
 
-        sae = Dropout_Sparse_Autoencoder(sess = sess, input_dim_list=[784,784,784],sparsities=[0.5,0.5])
-        print "x type",x.shape,x.dtype
+        sae = Dropout_Sparse_Autoencoder(sess = sess, input_dim_list=[784,300,200],sparsities=[0.5,0.5])
+        print ("x type",x.shape,x.dtype)
         sae.fit(x, sess = sess, iteration = 200,learning_rate = 0.01,batch_size=97,verbose = True)
 
         h = sae.transform(x,sess=sess)
-        print "h shape",h.shape
+        print ("h shape",h.shape)
         R = sae.getRecon(x,sess=sess)
-        print "R",R.shape,R.dtype
+        print ("R",R.shape,R.dtype)
         sae.fit(R, sess = sess, iteration = 200,learning_rate = 0.01,batch_size=97,verbose = True)
 

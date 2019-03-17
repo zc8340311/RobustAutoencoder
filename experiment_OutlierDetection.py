@@ -12,7 +12,7 @@ def l21RDAE(X, layers, lamda, folder, learning_rate = 0.15, inner = 100, outer =
     with tf.Graph().as_default():
         with tf.Session() as sess:
             rael21 = l21RDA.RobustL21Autoencoder(sess = sess, lambda_= lamda*X.shape[0], layers_sizes=layers)
-            l21L, l21S = rael21.fit(X = X, sess = sess, inner_iteration = inner, iteration = outer, batch_size = batch_size, learning_rate = learning_rate,  re_init=re_init,verbose = True)
+            l21L, l21S = rael21.fit(X = X, sess = sess, inner_iteration = inner, iteration = outer, batch_size = batch_size, learning_rate = learning_rate,  re_init=re_init, verbose = True)
             l21R = rael21.getRecon(X = X, sess = sess)
             l21H = rael21.transform(X, sess)
             Image.fromarray(I.tile_raster_images(X=l21S,img_shape=inputsize, tile_shape=(10, 10),tile_spacing=(1, 1))).save(r"l21S.png")

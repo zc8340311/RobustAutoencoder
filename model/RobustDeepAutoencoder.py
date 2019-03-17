@@ -3,6 +3,7 @@ import numpy.linalg as nplin
 import tensorflow as tf
 from BasicAutoencoder import DeepAE as DAE
 from shrink import l1shrink as SHR 
+
 class RDAE(object):
     """
     @author: Chong Zhou
@@ -12,6 +13,8 @@ class RDAE(object):
     3.0
     complete: 2/12/2018
     changes: delete unused parameter, move shrink function to other file
+    update: 03/15/2019
+        update to python3 
     Des:
         X = L + S
         L is a non-linearly low rank matrix and S is a sparse matrix.
@@ -41,20 +44,20 @@ class RDAE(object):
         self.S = np.zeros(X.shape)
 
         mu = (X.size) / (4.0 * nplin.norm(X,1))
-        print "shrink parameter:", self.lambda_ / mu
+        print ("shrink parameter:", self.lambda_ / mu)
         LS0 = self.L + self.S
 
         XFnorm = nplin.norm(X,'fro')
         if verbose:
-            print "X shape: ", X.shape
-            print "L shape: ", self.L.shape
-            print "S shape: ", self.S.shape
-            print "mu: ", mu
-            print "XFnorm: ", XFnorm
+            print ("X shape: ", X.shape)
+            print ("L shape: ", self.L.shape)
+            print ("S shape: ", self.S.shape)
+            print ("mu: ", mu)
+            print ("XFnorm: ", XFnorm)
 
-        for it in xrange(iteration):
+        for it in range(iteration):
             if verbose:
-                print "Out iteration: " , it
+                print ("Out iteration: " , it)
             ## alternating project, first project to L
             self.L = X - self.S
             ## Using L to train the auto-encoder
@@ -74,33 +77,36 @@ class RDAE(object):
             c2 = np.min([mu,np.sqrt(mu)]) * nplin.norm(LS0 - self.L - self.S) / XFnorm
 
             if verbose:
-                print "c1: ", c1
-                print "c2: ", c2
+                print ("c1: ", c1)
+                print ("c2: ", c2)
 
             if c1 < self.error and c2 < self.error :
-                print "early break"
+                print ("early break")
                 break
             ## save L + S for c2 check in the next iteration
             LS0 = self.L + self.S
             
         return self.L , self.S
+    
     def transform(self, X, sess):
         L = X - self.S
         return self.AE.transform(X = L, sess = sess)
+    
     def getRecon(self, X, sess):
         return self.AE.getRecon(X, sess = sess)
+    
 if __name__ == "__main__":
-	x = np.load(r"../data/data.npk")
-	sess = tf.Session()
-	rae = RDAE(sess = sess, lambda_= 2000, layers_sizes=[784,400])
+    
+    x = np.load(r"../data/data.npk")[:500]
+    with tf.Session() as sess:
+        rae = RDAE(sess = sess, lambda_= 2000, layers_sizes=[784,400])
 
-	L, S = rae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 40, inner_iteration = 50, 
-		    iteration=5, verbose=True)
+        L, S = rae.fit(x ,sess = sess, learning_rate=0.01, batch_size = 40, inner_iteration = 50, 
+                iteration=5, verbose=True)
 
-	recon_rae = rae.getRecon(x, sess = sess)
+        recon_rae = rae.getRecon(x, sess = sess)
 
-	sess.close()
-	print "cost errors, not used for now:", rae.errors
-	from collections import Counter
-	print "number of zero values in S:", Counter(S.reshape(S.size))[0]
-	print
+        print ("cost errors, not used for now:", rae.errors)
+    from collections import Counter
+    print ("number of zero values in S:", Counter(S.reshape(S.size))[0])
+

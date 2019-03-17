@@ -5,6 +5,8 @@ import sys
 sys.path.append("../")
 from shrink import l21shrink as SHR
 
+"""Updated to Python3"""
+
 class Robust_l1_SparseAutoencder():
     """
     @author: Chong Zhou
@@ -36,13 +38,13 @@ class Robust_l1_SparseAutoencder():
         self.S = np.zeros(X.shape)
 
         if verbose:
-            print "X shape: ", X.shape
-            print "L shape: ", self.L.shape
-            print "S shape: ", self.S.shape
+            print ("X shape: ", X.shape)
+            print ("L shape: ", self.L.shape)
+            print ("S shape: ", self.S.shape)
 
-        for it in xrange(iteration):
+        for it in range(iteration):
             if verbose:
-                print "Out iteration: " , it
+                print ("Out iteration: " , it)
             ## alternating project, first project to L
             self.L = np.array(X - self.S,dtype=float)
             ## Using L to train the auto-encoder
@@ -65,9 +67,9 @@ class Robust_l1_SparseAutoencder():
 
 
 if __name__ == '__main__':
-    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    x = np.load(r"../../data/data.npk")
     with tf.Session() as sess:
         rsae = Robust_l1_SparseAutoencder(sess = sess, lambda_= 4, layers_sizes=[784,784,784,784],sparsity=0.5)
 
         L, S = rsae.fit(x, sess = sess, inner_iteration = 20, iteration = 30,verbose = True)
-        print L.shape,S.shape
+        print (L.shape,S.shape)

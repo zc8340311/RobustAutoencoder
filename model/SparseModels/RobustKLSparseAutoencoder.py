@@ -37,13 +37,13 @@ class Robust_KL_SparseAutoencder():
         self.S = np.zeros(X.shape)
         
         if verbose:
-            print "X shape: ", X.shape
-            print "L shape: ", self.L.shape
-            print "S shape: ", self.S.shape
+            print ("X shape: ", X.shape)
+            print ("L shape: ", self.L.shape)
+            print ("S shape: ", self.S.shape)
             
-        for it in xrange(iteration):
+        for it in range(iteration):
             if verbose:
-                print "Out iteration: " , it
+                print ("Out iteration: " , it)
             ## alternating project, first project to L
             self.L = np.array(X - self.S,dtype=float)
             ## Using L to train the auto-encoder
@@ -60,14 +60,15 @@ class Robust_KL_SparseAutoencder():
 
     def transform(self, X, sess):
         return self.SAE.transform(X = X, sess = sess)
+    
     def getRecon(self, X, sess):
         return self.SAE.getRecon(self.L, sess = sess)
 
 if __name__ == '__main__':
-    x = np.load(r"/home/czhou2/Documents/train_x_small.pkl")
+    x = np.load(r"../../data/data.npk")[:500]
     with tf.Session() as sess:
         rsae = Robust_KL_SparseAutoencder(sess = sess, lambda_= 40, layers_sizes=[784,784,784,784],
                                             sparsity= 0.5, sparse_ratio= 0.2)
 
         L, S = rsae.fit(x, sess = sess, inner_iteration = 20, iteration = 30,verbose = True)
-        print L.shape,S.shape
+        print (L.shape,S.shape)

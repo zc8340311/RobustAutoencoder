@@ -13,6 +13,7 @@ class Deep_Autoencoder(object):
         self.encoding_b_list = []
         self.decoding_b_list = []
         self.dim_list = input_dim_list
+        self.learning_rate = tf.compat.v1.placeholder(tf.float32)
         ## Encoders parameters
         for i in range(len(input_dim_list)-1):
             init_max_value = np.sqrt(6. / (self.dim_list[i] + self.dim_list[i+1]))
@@ -38,7 +39,7 @@ class Deep_Autoencoder(object):
    
         self.cost = 200 * tf.reduce_mean(tf.square(self.input_x - self.recon))
 #         self.cost = 200*tf.losses.log_loss(self.recon, self.input_x)
-        self.train_step = tf.train.AdamOptimizer().minimize(self.cost)
+        self.train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
         sess.run(tf.global_variables_initializer())
 
     def fit(self, X, sess, learning_rate=0.15,
@@ -49,7 +50,7 @@ class Deep_Autoencoder(object):
         sample_size = X.shape[0]
         for i in range(iteration):
             for one_batch in batches(sample_size, batch_size):
-                sess.run(self.train_step,feed_dict = {self.input_x:X[one_batch]})
+                sess.run(self.train_step,feed_dict = {self.input_x:X[one_batch], self.learning_rate: learning_rate})
 
             if verbose and i%20==0:
                 e = self.cost.eval(session = sess,feed_dict = {self.input_x: X})
@@ -94,7 +95,7 @@ if __name__ == "__main__":
     import time
     import os
     os.chdir("../../")
-    x = np.load(r"./data/data.npk")
+    x = np.load(r"./data/data.npk", allow_pickle=True)
     start_time = time.time()
     with tf.Session() as sess:
         ae = Deep_Autoencoder(sess = sess, input_dim_list=[784,225,100])
